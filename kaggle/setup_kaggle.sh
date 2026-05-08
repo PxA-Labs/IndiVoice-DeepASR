@@ -74,50 +74,47 @@ echo "[LOG] Installing optimized dependencies..."
 pip install -r requirements.txt --quiet
 pip install bitsandbytes --quiet 
 
-# 7. Auto-Recovery: Download Audio if missing
-# Trigger if folder missing OR folder is empty (previous failed attempt)
-if [[ -f "data/processed/svarah_manifest.json" ]]; then
-    SHOULD_RECOVER=false
-    if [ ! -d "data/processed/svarah" ]; then
-        SHOULD_RECOVER=true
-    elif [ -z "$(ls -A data/processed/svarah 2>/dev/null)" ]; then
-        SHOULD_RECOVER=true
-        rm -rf data/processed/svarah # Remove empty folder to start fresh
+# 7. Auto-Recovery: Download Data/Manifest if missing
+SHOULD_RECOVER=false
+if [[ ! -f "data/processed/svarah_manifest.json" ]]; then
+    echo "[LOG] Manifest not found. Triggering download..."
+    SHOULD_RECOVER=true
+elif [[ ! -d "data/processed/svarah" ]] || [[ -z "$(ls -A data/processed/svarah 2>/dev/null)" ]]; then
+    echo "[LOG] Audio data not found or empty. Triggering download..."
+    SHOULD_RECOVER=true
+fi
+
+if [ "$SHOULD_RECOVER" = true ]; then
+    echo "[WARNING] Data incomplete! Launching Auto-Recovery..."
+    
+    # Check for Hugging Face Token (Gated Dataset Requirement)
+    if [[ -z "$HF_TOKEN" ]]; then
+        echo "[ERROR] WARNING: HF_TOKEN not found in environment."
+        echo "   Svarah is a GATED dataset. To fix this:"
+        echo "   1. Add 'HF_TOKEN' to your Kaggle Secrets (Add-ons -> Secrets)."
+        echo "   2. Accept the terms at: https://huggingface.co/datasets/ai4bharat/Svarah"
+        echo "   Continuing attempt anyway..."
     fi
 
-    if [ "$SHOULD_RECOVER" = true ]; then
-        echo "[WARNING] Audio files missing for Svarah dataset! Launching Auto-Recovery..."
-        
-        # Check for Hugging Face Token (Gated Dataset Requirement)
-        if [[ -z "$HF_TOKEN" ]]; then
-            echo "[ERROR] WARNING: HF_TOKEN not found in environment."
-            echo "   Svarah is a GATED dataset. To fix this:"
-            echo "   1. Add 'HF_TOKEN' to your Kaggle Secrets (Add-ons -> Secrets)."
-            echo "   2. Accept the terms at: https://huggingface.co/datasets/ai4bharat/Svarah"
-            echo "   Continuing attempt anyway..."
-        fi
+    mkdir -p data/processed/svarah
+    
+    # Manifest Liberation: If the manifest is a symlink (to Read-Only input), delete it
+    # so we can write a fresh local version if needed.
+    if [ -L "data/processed/svarah_manifest.json" ]; then
+        echo "[LOG] Liberating manifest from read-only symlink..."
+        rm "data/processed/svarah_manifest.json"
+    fi
 
-        mkdir -p data/processed/svarah
-        
-        
-        # Manifest Liberation: If the manifest is a symlink (to Read-Only input), delete it
-        # so we can write a fresh local version.
-        if [ -L "data/processed/svarah_manifest.json" ]; then
-            echo "[LOG] Liberating manifest from read-only symlink..."
-            rm "data/processed/svarah_manifest.json"
-        fi
-
-        python src/preprocess.py \
-            --hf_dataset ai4bharat/Svarah \
-            --output_dir data/processed/svarah \
-            --manifest_path data/processed/svarah_manifest.json \
-            --target_sr 16000
-        
-        if [ ! -d "data/processed/svarah" ] || [ -z "$(ls -A data/processed/svarah)" ]; then
-            echo "[ERROR] Auto-Recovery failed! Please ensure HF_TOKEN is correctly set."
-        else
-            echo "[SUCCESS] Auto-Recovery Complete! Audio files downloaded."
-        fi
+    python src/preprocess.py \
+        --hf_dataset ai4bharat/Svarah \
+        --output_dir data/processed/svarah \
+        --manifest_path data/processed/svarah_manifest.json \
+        --target_sr 16000
+    
+    if [[ ! -f "data/processed/svarah_manifest.json" ]]; then
+        echo "[ERROR] Auto-Recovery failed! Manifest was not created."
+    else
+        echo "[SUCCESS] Auto-Recovery Complete! Data and manifest ready."
     fi
 fi
 

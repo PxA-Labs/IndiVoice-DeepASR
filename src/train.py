@@ -146,7 +146,8 @@ def train():
         hub_model_id="whisper-indian-lora",
         hub_strategy="checkpoint",
         hub_token=os.environ.get("HF_TOKEN"),
-        gradient_checkpointing=False,
+        gradient_checkpointing=True,
+        dataloader_num_workers=4,
         ddp_find_unused_parameters=False,
         local_rank=int(os.environ.get("LOCAL_RANK", -1)),
     )
