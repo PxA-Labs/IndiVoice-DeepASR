@@ -8,7 +8,7 @@ from visualize import plot_mel_spectrogram
 
 def load_indivoice_model(model_path):
     if not os.path.exists(model_path):
-        print(f"❌ Error: Model path {model_path} does not exist.")
+        print(f"[ERROR] Error: Model path {model_path} does not exist.")
         print("Please train the model before launching the demo.")
         import sys
         sys.exit(1)
@@ -71,7 +71,7 @@ def launch_demo():
             gr.Textbox(label="IndiVoice Transcription"),
             gr.Image(label="Mel-Spectrogram (Whisper Input Feature)")
         ],
-        title="🎧 IndiVoice-DeepASR: Acoustic Intelligence Demo",
+        title="IndiVoice-DeepASR: Acoustic Intelligence Demo",
         description="Fine-tuned Whisper for Indian Accents. View the Mel-spectrogram to see exactly what the AI 'hears'.",
         theme="huggingface"
     )

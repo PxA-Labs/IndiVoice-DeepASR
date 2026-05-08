@@ -1,4 +1,4 @@
-# 🚀 IndiVoice-DeepASR: Kaggle Dual-T4 Master Guide
+# IndiVoice-DeepASR: Kaggle Dual-T4 Master Guide
 
 This guide ensures you extract **100% performance** from Kaggle's dual T4 GPUs. Follow these steps to migrate your training from Colab to a professional, automated workspace.
 

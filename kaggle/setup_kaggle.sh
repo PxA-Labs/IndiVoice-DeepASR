@@ -2,7 +2,7 @@
 # IndiVoice-DeepASR: Kaggle Setup Script
 # Use this to prepare the Kaggle environment for training.
 
-echo "🚀 Starting Kaggle Environment Setup..."
+echo "[LOG] Starting Kaggle Environment Setup..."
 
 # 1. Path Configuration
 KAGGLE_INPUT="/kaggle/input"
@@ -10,7 +10,7 @@ REPO_DIR="/kaggle/working/IndiVoice-DeepASR"
 REPO_URL="https://github.com/purvanshjoshi/IndiVoice-DeepASR.git"
 
 # 2. Setup Working Directory
-echo "📦 Setting up repository..."
+echo "[LOG] Setting up repository..."
 mkdir -p /kaggle/working
 cd /kaggle/working
 
@@ -29,27 +29,27 @@ fi
 cd "$REPO_DIR"
 
 # 3. Create Infrastructure
-echo "📁 Creating directory structure..."
+echo "[LOG] Creating directory structure..."
 mkdir -p data/processed
 mkdir -p models/whisper-indian-lora
 
 # 4. Link Kaggle Input Datasets/Checkpoints
 # Smart detection of 'indivoice-resumption' or other provided datasets
-echo "🔗 Searching for input data..."
+echo "[LOG] Searching for input data..."
 find $KAGGLE_INPUT -name "svarah_manifest.json" -exec ln -sf {} data/processed/svarah_manifest.json \;
 
 # Resumption Check: If the user provided a 'checkpoint-*' folder in any dataset, copy it
 CHECKPOINTS=$(find $KAGGLE_INPUT -name "checkpoint-*" -type d)
 if [ ! -z "$CHECKPOINTS" ]; then
-    echo "♻️ Found saved checkpoints. Preparing for resumption..."
+    echo "[RESUMING] Found saved checkpoints. Preparing for resumption..."
     for cp_path in $CHECKPOINTS; do
         cp -rn "$cp_path" models/whisper-indian-lora/
     done
-    echo "✅ Successfully restored $(ls -1 models/whisper-indian-lora/ | grep checkpoint | wc -l) checkpoints."
+    echo "[SUCCESS] Successfully restored $(ls -1 models/whisper-indian-lora/ | grep checkpoint | wc -l) checkpoints."
 fi
 
 # 5. Automated Accelerate Config (Dual-T4 Optimized)
-echo "⚙️ Configuring Multi-GPU Accelerator..."
+echo "[LOG] Configuring Multi-GPU Accelerator..."
 mkdir -p ~/.cache/huggingface/accelerate
 cat <<EOF > ~/.cache/huggingface/accelerate/default_config.yaml
 compute_environment: LOCAL_MACHINE
@@ -70,7 +70,7 @@ use_cpu: false
 EOF
 
 # 6. Install Dependencies
-echo "🛠️ Installing optimized dependencies..."
+echo "[LOG] Installing optimized dependencies..."
 pip install -r requirements.txt --quiet
 pip install bitsandbytes --quiet 
 
@@ -86,11 +86,11 @@ if [[ -f "data/processed/svarah_manifest.json" ]]; then
     fi
 
     if [ "$SHOULD_RECOVER" = true ]; then
-        echo "⚠️ Audio files missing for Svarah dataset! Launching Auto-Recovery..."
+        echo "[WARNING] Audio files missing for Svarah dataset! Launching Auto-Recovery..."
         
         # Check for Hugging Face Token (Gated Dataset Requirement)
         if [[ -z "$HF_TOKEN" ]]; then
-            echo "❌ WARNING: HF_TOKEN not found in environment."
+            echo "[ERROR] WARNING: HF_TOKEN not found in environment."
             echo "   Svarah is a GATED dataset. To fix this:"
             echo "   1. Add 'HF_TOKEN' to your Kaggle Secrets (Add-ons -> Secrets)."
             echo "   2. Accept the terms at: https://huggingface.co/datasets/ai4bharat/Svarah"
@@ -103,7 +103,7 @@ if [[ -f "data/processed/svarah_manifest.json" ]]; then
         # Manifest Liberation: If the manifest is a symlink (to Read-Only input), delete it
         # so we can write a fresh local version.
         if [ -L "data/processed/svarah_manifest.json" ]; then
-            echo "🔓 Liberating manifest from read-only symlink..."
+            echo "[LOG] Liberating manifest from read-only symlink..."
             rm "data/processed/svarah_manifest.json"
         fi
 
@@ -114,12 +114,12 @@ if [[ -f "data/processed/svarah_manifest.json" ]]; then
             --target_sr 16000
         
         if [ ! -d "data/processed/svarah" ] || [ -z "$(ls -A data/processed/svarah)" ]; then
-            echo "❌ Auto-Recovery failed! Please ensure HF_TOKEN is correctly set."
+            echo "[ERROR] Auto-Recovery failed! Please ensure HF_TOKEN is correctly set."
         else
-            echo "✅ Auto-Recovery Complete! Audio files downloaded."
+            echo "[SUCCESS] Auto-Recovery Complete! Audio files downloaded."
         fi
     fi
 fi
 
-echo "✨ Kaggle Setup Complete! Repository is ready for Dual-T4 training."
-echo "👉 Launch command: accelerate launch src/train.py"
+echo "[LOG] Kaggle Setup Complete! Repository is ready for Dual-T4 training."
+echo "Launch command: accelerate launch src/train.py"

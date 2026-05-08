@@ -77,14 +77,14 @@ def process_hf_dataset(dataset_name, output_dir, manifest_path, target_sr=16000)
     for split_choice in ["test", "train", "validation"]:
         try:
             ds = load_dataset(dataset_name, split=split_choice)
-            print(f"✅ Successfully loaded '{split_choice}' split.")
+            print(f"[SUCCESS] Successfully loaded '{split_choice}' split.")
             break
         except Exception:
             continue
             
     if ds is None:
-        print(f"❌ Error: Could not load any splits (test/train/validation) from dataset '{dataset_name}'.")
-        print("💡 TIP: If this is a Gated Dataset (like ai4bharat/Svarah):")
+        print(f"[ERROR] Error: Could not load any splits (test/train/validation) from dataset '{dataset_name}'.")
+        print("TIP: If this is a Gated Dataset (like ai4bharat/Svarah):")
         print("  1. Accept terms at https://huggingface.co/datasets/ai4bharat/Svarah")
         print("  2. Add your HF_TOKEN to Kaggle Secrets and toggle it ON.")
         return
@@ -94,10 +94,10 @@ def process_hf_dataset(dataset_name, output_dir, manifest_path, target_sr=16000)
     text_cols = [c for c in ds.column_names if c in ["text", "sentence", "transcript", "transcription", "transcript_clean"]]
     
     if not audio_cols:
-        print(f"❌ Error: Could not find an audio column in {dataset_name}. Found: {ds.column_names}")
+        print(f"[ERROR] Error: Could not find an audio column in {dataset_name}. Found: {ds.column_names}")
         return
     if not text_cols:
-        print(f"❌ Error: Could not find a text/transcript column in {dataset_name}. Found: {ds.column_names}")
+        print(f"[ERROR] Error: Could not find a text/transcript column in {dataset_name}. Found: {ds.column_names}")
         return
     
     audio_key = audio_cols[0]

@@ -50,14 +50,14 @@ def train():
     # 1. Hardware Reporting
     if torch.cuda.is_available():
         num_gpus = torch.cuda.device_count()
-        print(f"✅ Found {num_gpus} GPU(s). Distributed Data Parallel (DDP) active if launched with 'accelerate'.")
+        print(f"[SUCCESS] Found {num_gpus} GPU(s). Distributed Data Parallel (DDP) active if launched with 'accelerate'.")
     else:
-        print("⚠️ WARNING: GPU NOT DETECTED! Training will be extremely slow.")
+        print("[WARNING] GPU NOT DETECTED! Training will be extremely slow.")
 
     # 1.1 Check Manifests
     for path in [args.train_manifest, args.val_manifest]:
         if not os.path.exists(path):
-            print(f"❌ Error: Manifest not found at {path}")
+            print(f"[ERROR] Manifest not found at {path}")
             return
 
     # 2. Load Processor and Model with Optional Quantization
@@ -111,7 +111,7 @@ def train():
         if first_line:
             sample = json.loads(first_line)
             if not os.path.exists(sample["audio_filepath"]):
-                print(f"\n❌ CRITICAL ERROR: Audio file not found at {sample['audio_filepath']}")
+                print(f"\n[ERROR] CRITICAL ERROR: Audio file not found at {sample['audio_filepath']}")
                 print("This usually means you only uploaded the manifest but not the audio files.")
                 print("Tip: Run Section 1 (Setup) in your Kaggle notebook again; the new 'Auto-Recovery' feature will fix this for you!\n")
                 return
@@ -168,11 +168,11 @@ def train():
     if os.path.exists(args.output_dir):
         last_checkpoint = get_last_checkpoint(args.output_dir)
         if last_checkpoint is not None:
-            print(f"♻️ RESUMING training from detected checkpoint: {last_checkpoint}")
+            print(f"[RESUMING] RESUMING training from detected checkpoint: {last_checkpoint}")
         else:
-            print("🆕 No existing checkpoints found in output directory. Starting fresh training.")
+            print("[NEW] No existing checkpoints found in output directory. Starting fresh training.")
     else:
-        print(f"📁 Output directory {args.output_dir} does not exist. Creating and starting fresh.")
+        print(f"[DIR] Output directory {args.output_dir} does not exist. Creating and starting fresh.")
 
     # 8. Start Training
     print("Starting training...")

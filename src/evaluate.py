@@ -18,7 +18,7 @@ def evaluate():
 
     # 1. Load Config and Model
     if not os.path.exists(args.model_path):
-        print(f"❌ Error: Model path {args.model_path} does not exist.")
+        print(f"[ERROR] Error: Model path {args.model_path} does not exist.")
         print("Please run Section 5 (Training) first to train and save the model.")
         return
         

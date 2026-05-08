@@ -32,7 +32,7 @@ def plot_mel_spectrogram(audio_path, output_path=None, title="Mel-Spectrogram", 
     
     if output_path:
         plt.savefig(output_path)
-        print(f"✅ Spectrogram saved to {output_path}")
+        print(f"[SUCCESS] Spectrogram saved to {output_path}")
         plt.close(fig)
         return output_path
     
@@ -47,7 +47,7 @@ def main():
     args = parser.parse_args()
     
     if not os.path.exists(args.input):
-        print(f"❌ Error: File {args.input} not found.")
+        print(f"[ERROR] Error: File {args.input} not found.")
         return
         
     plot_mel_spectrogram(args.input, args.output, args.title)
