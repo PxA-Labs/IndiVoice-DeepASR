@@ -78,14 +78,8 @@ def train():
 
     # 3. Prepare Model for PEFT
     model.config.use_cache = False
-    if hasattr(model, "enable_input_require_grads"):
-        model.enable_input_require_grads()
-    else:
-        def make_inputs_require_grad(module, input, output):
-            output.requires_grad_(True)
-        model.get_input_embeddings().register_forward_hook(make_inputs_require_grad)
-        
     model = prepare_model_for_kbit_training(model)
+
     
     config = LoraConfig(
         r=16,
@@ -99,7 +93,9 @@ def train():
     model.print_trainable_parameters()
 
     # Final DDP Stability Fix: Use Non-Reentrant Gradient Checkpointing
+    model.enable_input_require_grads()
     model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
+
 
     # 4. Load Datasets
     print("Loading datasets...")
@@ -146,7 +142,7 @@ def train():
         hub_model_id="whisper-indian-lora",
         hub_strategy="checkpoint",
         hub_token=os.environ.get("HF_TOKEN"),
-        gradient_checkpointing=True,
+        gradient_checkpointing=False,
         dataloader_num_workers=4,
         ddp_find_unused_parameters=True,
         local_rank=int(os.environ.get("LOCAL_RANK", -1)),
