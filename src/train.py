@@ -128,20 +128,21 @@ def train():
         gradient_accumulation_steps=args.grad_accum,
         learning_rate=args.learning_rate,
         warmup_steps=50,
-        max_steps=5000,
+        max_steps=2000,
         fp16=True,
         eval_strategy="steps",
         per_device_eval_batch_size=args.batch_size,
         predict_with_generate=True,
         generation_max_length=225,
-        save_steps=100,
-        eval_steps=100,
+        save_steps=200,
+        eval_steps=200,
+        save_total_limit=2,
         logging_steps=25,
         report_to=["tensorboard"],
         load_best_model_at_end=True,
         metric_for_best_model="wer",
         greater_is_better=False,
-        push_to_hub=False,
+        push_to_hub=True if os.environ.get("HF_TOKEN") else False,
         gradient_checkpointing=False,
         ddp_find_unused_parameters=False,
         local_rank=int(os.environ.get("LOCAL_RANK", -1)),
@@ -164,7 +165,11 @@ def train():
     if os.path.exists(args.output_dir):
         last_checkpoint = get_last_checkpoint(args.output_dir)
         if last_checkpoint is not None:
-            print(f"Resuming training from checkpoint: {last_checkpoint}")
+            print(f"♻️ RESUMING training from detected checkpoint: {last_checkpoint}")
+        else:
+            print("🆕 No existing checkpoints found in output directory. Starting fresh training.")
+    else:
+        print(f"📁 Output directory {args.output_dir} does not exist. Creating and starting fresh.")
 
     # 8. Start Training
     print("Starting training...")

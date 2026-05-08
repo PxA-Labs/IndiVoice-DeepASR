@@ -39,10 +39,13 @@ echo "🔗 Searching for input data..."
 find $KAGGLE_INPUT -name "svarah_manifest.json" -exec ln -sf {} data/processed/svarah_manifest.json \;
 
 # Resumption Check: If the user provided a 'checkpoint-*' folder in any dataset, copy it
-CHECKPOINT_SOURCE=$(find $KAGGLE_INPUT -name "checkpoint-*" -type d | head -n 1)
-if [ ! -z "$CHECKPOINT_SOURCE" ]; then
-    echo "♻️ Found checkpoint at $CHECKPOINT_SOURCE. Preparing for resumption..."
-    cp -rn $CHECKPOINT_SOURCE models/whisper-indian-lora/
+CHECKPOINTS=$(find $KAGGLE_INPUT -name "checkpoint-*" -type d)
+if [ ! -z "$CHECKPOINTS" ]; then
+    echo "♻️ Found saved checkpoints. Preparing for resumption..."
+    for cp_path in $CHECKPOINTS; do
+        cp -rn "$cp_path" models/whisper-indian-lora/
+    done
+    echo "✅ Successfully restored $(ls -1 models/whisper-indian-lora/ | grep checkpoint | wc -l) checkpoints."
 fi
 
 # 5. Automated Accelerate Config (Dual-T4 Optimized)
@@ -95,6 +98,7 @@ if [[ -f "data/processed/svarah_manifest.json" ]]; then
         fi
 
         mkdir -p data/processed/svarah
+        
         
         # Manifest Liberation: If the manifest is a symlink (to Read-Only input), delete it
         # so we can write a fresh local version.
