@@ -143,6 +143,9 @@ def train():
         metric_for_best_model="wer",
         greater_is_better=False,
         push_to_hub=True if os.environ.get("HF_TOKEN") else False,
+        hub_model_id="whisper-indian-lora",
+        hub_strategy="checkpoint",
+        hub_token=os.environ.get("HF_TOKEN"),
         gradient_checkpointing=False,
         ddp_find_unused_parameters=False,
         local_rank=int(os.environ.get("LOCAL_RANK", -1)),
@@ -180,6 +183,11 @@ def train():
     model.save_pretrained(final_output_path)
     processor.save_pretrained(final_output_path)
     print(f"Training complete. Model saved to {final_output_path}")
+
+    # 10. Explicit push to Hub (Best model is already loaded)
+    if training_args.push_to_hub:
+        print("Pushing best model to Hugging Face Hub...")
+        trainer.push_to_hub(commit_message="Training complete: pushing best model based on WER")
 
 if __name__ == "__main__":
     train()
