@@ -148,7 +148,7 @@ def train():
         hub_token=os.environ.get("HF_TOKEN"),
         gradient_checkpointing=True,
         dataloader_num_workers=4,
-        ddp_find_unused_parameters=False,
+        ddp_find_unused_parameters=True,
         local_rank=int(os.environ.get("LOCAL_RANK", -1)),
     )
 
