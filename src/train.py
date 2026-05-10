@@ -39,11 +39,13 @@ def train():
     
     parser.add_argument("--output_dir", type=str, default=default_out, help="Output directory")
     parser.add_argument("--epochs", type=int, default=5, help="Number of training epochs")
+    parser.add_argument("--max_steps", type=int, default=2000, help="Maximum training steps (overrides epochs)")
     parser.add_argument("--batch_size", type=int, default=4, help="Training batch size per device")
     parser.add_argument("--grad_accum", type=int, default=8, help="Gradient accumulation steps")
     parser.add_argument("--learning_rate", type=float, default=1e-4, help="Learning rate")
     parser.add_argument("--load_in_8bit", action="store_true", help="Load model in 8-bit quantization")
     parser.add_argument("--load_in_4bit", action="store_true", help="Load model in 4-bit quantization")
+    parser.add_argument("--hub_model_id", type=str, default="whisper-indian-lora", help="HF Hub model ID")
     
     args = parser.parse_args()
 
@@ -124,7 +126,7 @@ def train():
         gradient_accumulation_steps=args.grad_accum,
         learning_rate=args.learning_rate,
         warmup_steps=50,
-        max_steps=2000,
+        max_steps=args.max_steps,
         fp16=True,
         eval_strategy="steps",
         per_device_eval_batch_size=args.batch_size,
@@ -139,7 +141,7 @@ def train():
         metric_for_best_model="wer",
         greater_is_better=False,
         push_to_hub=True if os.environ.get("HF_TOKEN") else False,
-        hub_model_id="whisper-indian-lora",
+        hub_model_id=args.hub_model_id,
         hub_strategy="checkpoint",
         hub_token=os.environ.get("HF_TOKEN"),
         gradient_checkpointing=False,
@@ -188,4 +190,3 @@ def train():
 
 if __name__ == "__main__":
     train()
-
