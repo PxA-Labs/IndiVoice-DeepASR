@@ -114,8 +114,19 @@ def train():
                 print("Tip: Run Section 1 (Setup) in your Kaggle notebook again; the new 'Auto-Recovery' feature will fix this for you!\n")
                 return
 
-    train_dataset = prepare_dataset(args.train_manifest, processor.feature_extractor, processor.tokenizer)
-    val_dataset = prepare_dataset(args.val_manifest, processor.feature_extractor, processor.tokenizer)
+    # Check if we should use the same manifest for both
+    if args.train_manifest == args.val_manifest:
+        print(f"[INFO] Training and Validation manifests are the same. Processing once and splitting...")
+        full_dataset = prepare_dataset(args.train_manifest, processor.feature_extractor, processor.tokenizer)
+        # Split: 90% train, 10% validation
+        split = full_dataset.train_test_split(test_size=0.1, seed=42)
+        train_dataset = split["train"]
+        val_dataset = split["test"]
+        print(f"[INFO] Dataset split complete: Train={len(train_dataset)}, Val={len(val_dataset)}")
+    else:
+        print(f"[INFO] Processing separate manifests for Train and Val...")
+        train_dataset = prepare_dataset(args.train_manifest, processor.feature_extractor, processor.tokenizer)
+        val_dataset = prepare_dataset(args.val_manifest, processor.feature_extractor, processor.tokenizer)
 
     data_collator = DataCollatorSpeechSeq2SeqWithPadding(processor=processor)
 

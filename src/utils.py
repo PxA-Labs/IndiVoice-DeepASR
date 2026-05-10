@@ -16,20 +16,25 @@ def load_manifest(manifest_path):
 def prepare_dataset(manifest_path, feature_extractor, tokenizer):
     """
     Creates a Hugging Face Dataset from a manifest and applies preprocessing.
-    Uses memory-mapped loading and batched processing for RAM efficiency.
+    Uses disk caching to prevent RAM OOM and skips reprocessing if cache exists.
     """
     from datasets import load_dataset
-    # Load directly from JSONL using memory-mapping
-    dataset = load_dataset("json", data_files=manifest_path, split="train")
+    import os
+
+    # Force cache to /kaggle/working to avoid filling up small root partition
+    cache_dir = "/kaggle/working/dataset_cache"
+    os.makedirs(cache_dir, exist_ok=True)
+    
+    # Load directly from JSONL
+    dataset = load_dataset("json", data_files=manifest_path, split="train", cache_dir=cache_dir)
     dataset = dataset.cast_column("audio_filepath", Audio(sampling_rate=16000))
     
     def preprocess_function(batch):
-        # Process audio in batches for speed and memory efficiency
-        # audio_filepath column returns a list of dictionaries when batched=True
+        # Process audio arrays
         audio_data = batch["audio_filepath"]
         audio_arrays = [x["array"] for x in audio_data]
         
-        # Vectorize audio
+        # Vectorize audio to 80-bin mel spectrogram
         inputs = feature_extractor(audio_arrays, sampling_rate=16000)
         batch["input_features"] = inputs.input_features
         
@@ -37,15 +42,17 @@ def prepare_dataset(manifest_path, feature_extractor, tokenizer):
         batch["labels"] = tokenizer(batch["text"]).input_ids
         return batch
 
-    # Configure mapping for Colab stability
+    # Configure mapping for Kaggle stability
     dataset = dataset.map(
         preprocess_function, 
         batched=True,
-        batch_size=8, # Small batches to prevent RAM spikes
+        batch_size=4, # Very small batches for Whisper-Medium features
         remove_columns=dataset.column_names, 
         num_proc=1,
-        writer_batch_size=50, # More frequent disk flushes
-        desc="Vectorizing datasets (RAM Optimized)"
+        writer_batch_size=25, # Frequent disk flushes
+        desc="Vectorizing datasets (RAM Optimized)",
+        cache_file_name=os.path.join(cache_dir, f"processed_{os.path.basename(manifest_path)}.arrow"),
+        load_from_cache_file=True # Skip if already done!
     )
     return dataset
 
