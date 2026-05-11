@@ -105,33 +105,37 @@ def train():
 
     data_collator = DataCollatorSpeechSeq2SeqWithPadding(processor=processor)
 
-    # 5. Training Arguments (Optimized for T4 x2)
-    training_args = Seq2SeqTrainingArguments(
-        output_dir=args.output_dir,
-        per_device_train_batch_size=args.batch_size,
-        gradient_accumulation_steps=args.grad_accum,
-        learning_rate=args.learning_rate,
-        warmup_steps=500,
-        max_steps=args.max_steps,
-        gradient_checkpointing=True,
-        fp16=True, # Critical for T4 speed and memory
-        eval_strategy="steps",
-        per_device_eval_batch_size=args.batch_size,
-        predict_with_generate=True,
-        generation_max_length=225,
-        save_steps=500,
-        eval_steps=500,
-        logging_steps=25,
-        report_to="tensorboard",
-        load_best_model_at_end=True,
-        metric_for_best_model="wer",
-        greater_is_better=False,
-        push_to_hub=True if args.hub_model_id else False,
-        hub_model_id=args.hub_model_id,
-        remove_unused_columns=False,
-        label_names=["labels"],
-        ddp_find_unused_parameters=False # Faster DDP
-    )
+    # Dynamic strategy handling for different transformer versions
+    eval_param = "eval_strategy" if hasattr(Seq2SeqTrainingArguments, "eval_strategy") else "evaluation_strategy"
+    
+    training_args_dict = {
+        "output_dir": args.output_dir,
+        "per_device_train_batch_size": args.batch_size,
+        "gradient_accumulation_steps": args.grad_accum,
+        "learning_rate": args.learning_rate,
+        "warmup_steps": 500,
+        "max_steps": args.max_steps,
+        "gradient_checkpointing": True,
+        "fp16": True,
+        eval_param: "steps",
+        "per_device_eval_batch_size": args.batch_size,
+        "predict_with_generate": True,
+        "generation_max_length": 225,
+        "save_steps": 500,
+        "eval_steps": 500,
+        "logging_steps": 25,
+        "report_to": "tensorboard",
+        "load_best_model_at_end": True,
+        "metric_for_best_model": "wer",
+        "greater_is_better": False,
+        "push_to_hub": True if args.hub_model_id else False,
+        "hub_model_id": args.hub_model_id,
+        "remove_unused_columns": False,
+        "label_names": ["labels"],
+        "ddp_find_unused_parameters": False
+    }
+
+    training_args = Seq2SeqTrainingArguments(**training_args_dict)
 
     trainer = Seq2SeqTrainer(
         args=training_args,
