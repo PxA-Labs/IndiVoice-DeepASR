@@ -67,25 +67,17 @@ def train():
             with open(config_path, "r") as f:
                 config_data = json.load(f)
             
-            # Remove keys that cause TypeError in newer/older PEFT versions
-            offending_keys = [
-                "alora_invocation_tokens", 
-                "use_alora", 
-                "arrow_config", 
-                "use_arrow",
-                "megalora_config",
-                "use_megalora"
-            ]
-            changed = False
-            for key in offending_keys:
-                if key in config_data:
-                    del config_data[key]
-                    changed = True
+            # Definitive Fix: Only keep keys that the current LoraConfig version supports
+            import inspect
+            from peft import LoraConfig
+            valid_keys = set(inspect.signature(LoraConfig.__init__).parameters.keys())
             
-            if changed:
+            new_config = {k: v for k, v in config_data.items() if k in valid_keys}
+            
+            if len(new_config) < len(config_data):
                 with open(config_path, "w") as f:
-                    json.dump(config_data, f, indent=4)
-                print(f"[FIX] Sanitized adapter_config.json for compatibility.")
+                    json.dump(new_config, f, indent=4)
+                print(f"[FIX] Sanitized adapter_config.json. Kept {len(new_config)} keys, removed {len(config_data) - len(new_config)} experimental ones.")
 
         model = PeftModel.from_pretrained(model, last_checkpoint, is_trainable=True)
     else:
