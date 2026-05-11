@@ -8,6 +8,12 @@ from transformers import (
     Seq2SeqTrainer
 )
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training, PeftModel
+import sys
+import os
+
+# Add the parent directory to sys.path to allow 'from src.utils' imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from src.utils import prepare_dataset, DataCollatorSpeechSeq2SeqWithPadding
 
 def train():
