@@ -59,6 +59,27 @@ def train():
     # 3. Handle LoRA / Resumption
     if last_checkpoint:
         print(f"[LOG] Loading existing adapters from {last_checkpoint}...")
+        
+        # Compatibility Fix: Strip 'alora_invocation_tokens' if it exists in config
+        import json
+        config_path = os.path.join(last_checkpoint, "adapter_config.json")
+        if os.path.exists(config_path):
+            with open(config_path, "r") as f:
+                config_data = json.load(f)
+            
+            # Remove keys that cause TypeError in newer/older PEFT versions
+            offending_keys = ["alora_invocation_tokens", "use_alora"]
+            changed = False
+            for key in offending_keys:
+                if key in config_data:
+                    del config_data[key]
+                    changed = True
+            
+            if changed:
+                with open(config_path, "w") as f:
+                    json.dump(config_data, f, indent=4)
+                print(f"[FIX] Sanitized adapter_config.json for compatibility.")
+
         model = PeftModel.from_pretrained(model, last_checkpoint, is_trainable=True)
     else:
         print("[LOG] Initializing new LoRA adapters...")
