@@ -115,7 +115,7 @@ def train():
         max_steps=args.max_steps,
         gradient_checkpointing=True,
         fp16=True, # Critical for T4 speed and memory
-        evaluation_strategy="steps",
+        eval_strategy="steps",
         per_device_eval_batch_size=args.batch_size,
         predict_with_generate=True,
         generation_max_length=225,
