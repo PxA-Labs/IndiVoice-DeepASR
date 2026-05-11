@@ -68,7 +68,14 @@ def train():
                 config_data = json.load(f)
             
             # Remove keys that cause TypeError in newer/older PEFT versions
-            offending_keys = ["alora_invocation_tokens", "use_alora"]
+            offending_keys = [
+                "alora_invocation_tokens", 
+                "use_alora", 
+                "arrow_config", 
+                "use_arrow",
+                "megalora_config",
+                "use_megalora"
+            ]
             changed = False
             for key in offending_keys:
                 if key in config_data:
