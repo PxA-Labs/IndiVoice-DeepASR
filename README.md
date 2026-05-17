@@ -1,10 +1,10 @@
 <div align="center">
-  <img src="assets/banner.png" alt="IndiVoice Banner" width="100%">
+  <img src="assets/banner.png" alt="IndiVoice Banner" width="200">
+
+  # IndiVoice-DeepASR: Indian-Accented Speech Recognition
+
+  Bridging the Accent Gap in Modern ASR with Whisper + LoRA
 </div>
-
-# IndiVoice-DeepASR: Indian-Accented Speech Recognition
-
-Bridging the Accent Gap in Modern ASR with Whisper + LoRA
 
 [![GitHub Stars](https://img.shields.io/github/stars/purvanshjoshi/IndiVoice-DeepASR?style=for-the-badge&logo=github&color=FFD700)](https://github.com/purvanshjoshi/IndiVoice-DeepASR/stargazers)
 [![Hugging Face](https://img.shields.io/badge/Datasets-Svarah-blue?style=for-the-badge)](https://huggingface.co/datasets/ai4bharat/Svarah)
