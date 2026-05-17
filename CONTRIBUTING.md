@@ -6,7 +6,7 @@ Please review the following guidelines before you get started.
 
 ## Code of Conduct
 
-By participating in this project, you agree to abide by our [Code of Conduct](CODE_OF_CONDUCT.md). Please report any violations or unacceptable behavior to purvanshjoshi17@gmail.com.
+By participating in this project, you agree to abide by our [Code of Conduct](CODE_OF_CONDUCT.md). Please report any violations or unacceptable behavior to purvanshjoshi7534011576@gmail.com.
 
 ## How to Contribute
 

@@ -15,7 +15,7 @@ We take the security of this project and the safety of user-trained checkpoints 
 
 **Please do not report security vulnerabilities through public GitHub issues.**
 
-Instead, please send an email directly to the project maintainer at **purvanshjoshi17@gmail.com**.
+Instead, please send an email directly to the project maintainer at **purvanshjoshi7534011576@gmail.com**.
 
 ### What to Include in a Report
 * A descriptive subject line (e.g., "Security Vulnerability: Arbitrary File Read in Manifest Preprocessor").
