@@ -1,37 +1,33 @@
-<div align="center">
-  <img src="assets/banner.png" alt="IndiVoice Banner" width="100%">
-  
-  # 🎧 IndiVoice-DeepASR: Indian-Accented Speech Recognition
-  
-  **Bridging the Accent Gap in Modern ASR with Whisper + LoRA**
-  
-  [![GitHub Stars](https://img.shields.io/github/stars/purvanshjoshi/IndiVoice-DeepASR?style=for-the-badge&logo=github&color=FFD700)](https://github.com/purvanshjoshi/IndiVoice-DeepASR/stargazers)
-  [![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Datasets-Svarah-blue?style=for-the-badge)](https://huggingface.co/datasets/ai4bharat/Svarah)
-  [![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/)
-  [![License](https://img.shields.io/badge/License-MIT-4CAF50?style=for-the-badge)](LICENSE)
+# IndiVoice-DeepASR: Indian-Accented Speech Recognition
 
-  [**Explore the Code**](https://github.com/purvanshjoshi/IndiVoice-DeepASR) • [**Launch Colab**](https://colab.research.google.com/github/purvanshjoshi/IndiVoice-DeepASR/blob/main/notebooks/IndiVoice_Colab_Entry.ipynb) • [**Launch Kaggle**](https://github.com/purvanshjoshi/IndiVoice-DeepASR/tree/main/kaggle)
+Bridging the Accent Gap in Modern ASR with Whisper + LoRA
 
-  > [!IMPORTANT]
-  > **Ultra-Resilience Update (v1.8)**: Added high-frequency checkpointing (every 100 steps) and auto-resumption to protect against Colab/Kaggle runtime disconnections. Resolved `load_best_model_at_end` compatibility issues.
-</div>
+[![GitHub Stars](https://img.shields.io/github/stars/purvanshjoshi/IndiVoice-DeepASR?style=for-the-badge&logo=github&color=FFD700)](https://github.com/purvanshjoshi/IndiVoice-DeepASR/stargazers)
+[![Hugging Face](https://img.shields.io/badge/Datasets-Svarah-blue?style=for-the-badge)](https://huggingface.co/datasets/ai4bharat/Svarah)
+[![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![License](https://img.shields.io/badge/License-MIT-4CAF50?style=for-the-badge)](LICENSE)
+
+[**Explore the Code**](https://github.com/PxA-Labs/IndiVoice-DeepASR) • [**Launch Colab**](https://colab.research.google.com/github/PxA-Labs/IndiVoice-DeepASR/blob/main/notebooks/IndiVoice_Colab_Entry.ipynb) • [**Launch Kaggle**](https://github.com/PxA-Labs/IndiVoice-DeepASR/tree/main/kaggle)
+
+> [!IMPORTANT]
+> **Resilience Update (v1.8)**: Implemented high-frequency checkpointing (every 100 steps) and auto-resumption to protect training progress against Colab or Kaggle runtime disconnections. Resolved `load_best_model_at_end` compatibility issues.
 
 ---
 
-## 🌟 Overview
+## Overview
 
-Current commercial ASR systems suffer from a **20-30% performance drop** when processing Indian English accents. **IndiVoice-DeepASR** is a research-driven project that fine-tunes OpenAI's Whisper models using **LoRA (Low-Rank Adaptation)** to achieve state-of-the-art accuracy across diverse Indian linguistic profiles.
+Current commercial automatic speech recognition (ASR) systems demonstrate a 20-30% performance degradation when processing Indian English accents. IndiVoice-DeepASR is a research-driven project that fine-tunes OpenAI's Whisper models using Low-Rank Adaptation (LoRA) to achieve state-of-the-art accuracy across diverse Indian linguistic profiles.
 
-### ✨ Key Features
-- **🛡️ Ultra-Resilient**: Automatic checkpoint detection and resumption. Never lose more than 10-15 minutes of training.
-- **🚀 Efficiency**: Fine-tune with < 2% of total parameters using PEFT techniques.
-- **🇮🇳 Localization**: Optimized for Hindi, Tamil, Kannada, Bengali, and Punjabi accents.
-- **🌊 Stable Decoding**: Multi-layered `AudioDecoder` logic for robust preprocessing on diverse system environments.
-- **⚡ Performance**: Achieve significant WER reduction compared to base Whisper models.
+### Key Features
+- **Fault-Tolerant Training**: Automatic checkpoint detection and seamless resumption to safeguard progress during remote GPU training disconnections.
+- **Parameter Efficiency**: Fine-tune with less than 2% of total parameters using Parameter-Efficient Fine-Tuning (PEFT) techniques.
+- **Accent Localization**: Optimized to handle Hindi, Tamil, Kannada, Bengali, and Punjabi regional accents.
+- **Robust Audio Pipeline**: Multi-layered `AudioDecoder` logic for stable preprocessing across diverse computing environments.
+- **Enhanced Accuracy**: Accomplishes significant Word Error Rate (WER) reductions compared to the base Whisper model.
 
 ---
 
-## 🛠️ Tech Stack & Pillars
+## Technical Stack and Architecture
 
 <div align="center">
   <table>
@@ -50,7 +46,7 @@ Current commercial ASR systems suffer from a **20-30% performance drop** when pr
 
 ---
 
-## 🏗️ Architecture
+## Pipeline Flow
 
 ```mermaid
 graph LR
@@ -64,45 +60,47 @@ graph LR
 
 ---
 
-## 🚀 Quick Start
+## Getting Started
 
-### 1. Collaborative Training (Recommended)
+### 1. Cloud-Based Training (Recommended)
 Choose your preferred platform for free GPU access:
-- [**Colab Gateway**](https://colab.research.google.com/github/purvanshjoshi/IndiVoice-DeepASR/blob/main/notebooks/IndiVoice_Colab_Entry.ipynb): Best for initial setup and rapid experimentation.
-- [**Kaggle Runner**](https://github.com/purvanshjoshi/IndiVoice-DeepASR/tree/main/kaggle): Best for long-running training (30 hours/week free GPU). Includes a specialized `setup_kaggle.sh` for one-click environment configuration.
+- [**Colab Gateway**](https://colab.research.google.com/github/PxA-Labs/IndiVoice-DeepASR/blob/main/notebooks/IndiVoice_Colab_Entry.ipynb): Best for initial setup and rapid experimentation.
+- [**Kaggle Runner**](https://github.com/PxA-Labs/IndiVoice-DeepASR/tree/main/kaggle): Optimized for long-running training. Includes `setup_kaggle.sh` for environment configuration.
 
-### 2. Local Development
+### 2. Local Setup and Execution
 ```bash
-# Clone & Install
-git clone https://github.com/purvanshjoshi/IndiVoice-DeepASR.git
+# Clone the repository
+git clone https://github.com/PxA-Labs/IndiVoice-DeepASR.git
 cd IndiVoice-DeepASR
+
+# Install dependencies
 pip install -r requirements.txt
 
-# Preprocess (Multi-layered decoder support)
+# Preprocess the Svarah dataset
 python src/preprocess.py --hf_dataset ai4bharat/Svarah --output_dir data/processed
 
-# Train (Auto-resumes from latest checkpoint)
+# Train the model (Auto-resumes from latest checkpoint if present)
 python src/train.py --output_dir models/indian-accent-lora
 ```
 
 ---
 
-## 📂 Repository Structure
+## Repository Structure
 
 ```text
 IndiVoice-DeepASR/
-├── assets/            # Branding & Visuals
-├── kaggle/            # Dedicated Kaggle training workspace
-├── src/               # Optimized Pipeline Scripts (Train/Preprocess/Deploy)
-├── notebooks/         # Interactive Research
-├── data/              # Dataset Symlinks & Manifests
-├── models/            # Checkpoints & LoRA Weights
-└── paper/             # ICASSP Publication Source
+├── assets/            # Branding and visual elements
+├── kaggle/            # Kaggle training utilities and scripts
+├── src/               # Core codebase for training, preprocessing, and deployment
+├── notebooks/         # Jupyter Notebooks for experimentation
+├── data/              # Dataset symlinks and manifests
+├── models/            # Checkpoints and serialized weights
+└── paper/             # Source files for academic publication
 ```
 
 ---
 
-## 🎓 Academic Citation
+## Academic Citation
 
 If you use this work in your research, please cite:
 
@@ -112,13 +110,13 @@ If you use this work in your research, please cite:
   title = {IndiVoice-DeepASR: Efficient Adaptation of Multilingual Speech Models for Indian Accents},
   year = {2026},
   publisher = {GitHub},
-  howpublished = {\url{https://github.com/purvanshjoshi/IndiVoice-DeepASR}}
+  howpublished = {\url{https://github.com/PxA-Labs/IndiVoice-DeepASR}}
 }
 ```
 
 ---
 
 <div align="center">
-  <p>Built with ❤️ for the Indian Speech Recognition Research Community</p>
+  <p>Built for the Indian Speech Recognition Research Community</p>
   <img src="https://img.shields.io/badge/Made%20with-Python-blue" alt="Python">
 </div>
