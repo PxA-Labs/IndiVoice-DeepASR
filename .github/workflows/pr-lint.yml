@@ -1,0 +1,85 @@
+name: Pull Request Compliance Linter
+
+on:
+  pull_request:
+    types: [opened, edited, synchronized, reopened]
+    branches: [ master ]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  validate-pr-title:
+    name: Validate Conventional Commit Title
+    runs-on: ubuntu-latest
+    steps:
+      - name: Conventional PR Title Check
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Enforces types like: feat, fix, docs, ci, refactor, perf, test, chore, style
+          types: |
+            feat
+            fix
+            docs
+            ci
+            refactor
+            perf
+            test
+            chore
+            style
+          requireScope: false
+
+  check-pr-emojis:
+    name: Enforce Emoji-Free Compliance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Scan PR Title and Description for Emojis
+        shell: python
+        run: |
+          import sys
+          import re
+          import json
+
+          # Read Github Context Pull Request data
+          title = """${{ github.event.pull_request.title }}"""
+          body = """${{ github.event.pull_request.body }}"""
+
+          # Comprehensive unicode pattern for emojis
+          emoji_pattern = re.compile(
+              "["
+              "\U00010000-\U0010ffff"  # Supplemental planes (most modern emojis)
+              "\u2600-\u27BF"          # Miscellaneous Symbols and Dingbats
+              "\u2300-\u23FF"          # Miscellaneous Technical
+              "\u2b50"                 # Medium Golden Star
+              "]+", 
+              flags=re.UNICODE
+          )
+
+          found_in_title = emoji_pattern.findall(title)
+          found_in_body = emoji_pattern.findall(body)
+
+          violations = []
+          if found_in_title:
+              violations.append(f"PR Title contains emojis: {found_in_title}")
+          if found_in_body:
+              violations.append(f"PR Description contains emojis: {found_in_body}")
+
+          if violations:
+              print("=== COMPLIANCE VIOLATION ===")
+              for v in violations:
+                  print(f"Error: {v}")
+              print("============================")
+              print("Please remove all emojis from your PR title and description to align with our professional standards.")
+              sys.exit(1)
+          else:
+              print("PR Title and Description are successfully free of emojis.")
