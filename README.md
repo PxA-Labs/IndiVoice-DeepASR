@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="assets/banner.png" alt="IndiVoice Banner" width="100%">
+</div>
+
 # IndiVoice-DeepASR: Indian-Accented Speech Recognition
 
 Bridging the Accent Gap in Modern ASR with Whisper + LoRA
