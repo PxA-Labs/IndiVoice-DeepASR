@@ -1,20 +1,15 @@
-import torch
 import os
-import argparse
-from transformers import (
-    WhisperProcessor, 
-    WhisperForConditionalGeneration, 
-    Seq2SeqTrainingArguments, 
-    Seq2SeqTrainer
-)
-from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training, PeftModel
 import sys
-import os
+import argparse
 
 # Add the parent directory to sys.path to allow 'from src.utils' imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.utils import prepare_dataset, DataCollatorSpeechSeq2SeqWithPadding
+# NOTE: verify_manifests lives at the top of src/utils.py, above its own
+# heavy imports (torch/datasets/transformers), so importing it alone here
+# does NOT pull in torch. See Issue #6.
+from src.utils import verify_manifests
+
 
 def train():
     parser = argparse.ArgumentParser()
@@ -22,23 +17,44 @@ def train():
     parser.add_argument("--train_manifest", type=str, default="data/processed/svarah_manifest.json")
     parser.add_argument("--val_manifest", type=str, default="data/processed/svarah_manifest.json")
     parser.add_argument("--output_dir", type=str, default="/kaggle/working/models/whisper-indian-lora")
-    parser.add_argument("--batch_size", type=int, default=4) # Reduced for VRAM safety
-    parser.add_argument("--grad_accum", type=int, default=4) # Increased to keep effective batch size
+    parser.add_argument("--batch_size", type=int, default=4)  # Reduced for VRAM safety
+    parser.add_argument("--grad_accum", type=int, default=4)  # Increased to keep effective batch size
     parser.add_argument("--learning_rate", type=float, default=1e-4)
     parser.add_argument("--max_steps", type=int, default=4000)
     parser.add_argument("--hub_model_id", type=str, default=None)
     args = parser.parse_args()
 
+    # ------------------------------------------------------------------
+    # STEP 0 (Issue #6): Verify manifests + audio paths BEFORE any GPU
+    # allocation or model/tensor loading. Fails fast with diagnostic
+    # errors instead of crashing mid-training.
+    # ------------------------------------------------------------------
+    manifest_paths = {args.train_manifest, args.val_manifest}
+    verify_manifests(list(manifest_paths))
+
+    # ------------------------------------------------------------------
+    # Heavy imports happen only AFTER verification passes.
+    # ------------------------------------------------------------------
+    import torch
+    from transformers import (
+        WhisperProcessor,
+        WhisperForConditionalGeneration,
+        Seq2SeqTrainingArguments,
+        Seq2SeqTrainer
+    )
+    from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training, PeftModel
+    from src.utils import prepare_dataset, DataCollatorSpeechSeq2SeqWithPadding
+
     # 1. Device Setup for DDP
     # IMPORTANT: Do not use device_map="auto" with accelerate launch
     local_rank = int(os.environ.get("LOCAL_RANK", 0))
     device = f"cuda:{local_rank}"
-    
+
     print(f"[INFO] Rank {local_rank} starting on {device}")
 
     # 2. Load Processor and Model
     processor = WhisperProcessor.from_pretrained(args.model_name)
-    
+
     # Check if a checkpoint exists for resumption
     last_checkpoint = None
     if os.path.exists(args.output_dir):
@@ -49,9 +65,9 @@ def train():
 
     # Load base model in 8-bit to save VRAM
     model = WhisperForConditionalGeneration.from_pretrained(
-        args.model_name, 
+        args.model_name,
         load_in_8bit=True,
-        device_map={"": device} # Force model to specific GPU handled by accelerate
+        device_map={"": device}  # Force model to specific GPU handled by accelerate
     )
 
     model = prepare_model_for_kbit_training(model)
@@ -59,21 +75,21 @@ def train():
     # 3. Handle LoRA / Resumption
     if last_checkpoint:
         print(f"[LOG] Loading existing adapters from {last_checkpoint}...")
-        
+
         # Compatibility Fix: Strip 'alora_invocation_tokens' if it exists in config
         import json
         config_path = os.path.join(last_checkpoint, "adapter_config.json")
         if os.path.exists(config_path):
             with open(config_path, "r") as f:
                 config_data = json.load(f)
-            
+
             # Definitive Fix: Only keep keys that the current LoraConfig version supports
             import inspect
             from peft import LoraConfig
             valid_keys = set(inspect.signature(LoraConfig.__init__).parameters.keys())
-            
+
             new_config = {k: v for k, v in config_data.items() if k in valid_keys}
-            
+
             if len(new_config) < len(config_data):
                 with open(config_path, "w") as f:
                     json.dump(new_config, f, indent=4)
@@ -83,10 +99,10 @@ def train():
     else:
         print("[LOG] Initializing new LoRA adapters...")
         config = LoraConfig(
-            r=32, 
-            lora_alpha=64, 
-            target_modules=["q_proj", "v_proj"], 
-            lora_dropout=0.05, 
+            r=32,
+            lora_alpha=64,
+            target_modules=["q_proj", "v_proj"],
+            lora_dropout=0.05,
             bias="none"
         )
         model = get_peft_model(model, config)
@@ -107,7 +123,7 @@ def train():
 
     # Dynamic strategy handling for different transformer versions
     eval_param = "eval_strategy" if hasattr(Seq2SeqTrainingArguments, "eval_strategy") else "evaluation_strategy"
-    
+
     training_args_dict = {
         "output_dir": args.output_dir,
         "per_device_train_batch_size": args.batch_size,
@@ -148,10 +164,11 @@ def train():
 
     print("Starting training...")
     trainer.train(resume_from_checkpoint=last_checkpoint)
-    
+
     # Save final model
     trainer.save_model(os.path.join(args.output_dir, "final_lora"))
     print(f"[SUCCESS] Training complete. Model saved to {args.output_dir}")
+
 
 if __name__ == "__main__":
     train()
