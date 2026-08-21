@@ -45,6 +45,10 @@ def train():
     from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training, PeftModel
     from src.utils import prepare_dataset, DataCollatorSpeechSeq2SeqWithPadding
 
+    # Issue #9: WER/CER evaluation deps
+    import evaluate
+    import numpy as np
+
     # 1. Device Setup for DDP
     # IMPORTANT: Do not use device_map="auto" with accelerate launch
     local_rank = int(os.environ.get("LOCAL_RANK", 0))
@@ -54,6 +58,33 @@ def train():
 
     # 2. Load Processor and Model
     processor = WhisperProcessor.from_pretrained(args.model_name)
+
+    # ------------------------------------------------------------------
+    # Issue #9: Dynamic WER/CER evaluation hook.
+    # Decodes generated token ids back to text (skipping special tokens)
+    # and computes WER/CER against the reference labels. Registered with
+    # the trainer below via compute_metrics=compute_metrics. Requires
+    # predict_with_generate=True in training_args (already set) so that
+    # pred.predictions contains generated token ids rather than logits.
+    # ------------------------------------------------------------------
+    wer_metric = evaluate.load("wer")
+    cer_metric = evaluate.load("cer")
+
+    def compute_metrics(pred):
+        pred_ids = pred.predictions
+        label_ids = pred.label_ids
+
+        # Replace -100 (loss-ignore padding) with the real pad token id
+        # before decoding, otherwise the tokenizer chokes on -100.
+        label_ids = np.where(label_ids != -100, label_ids, processor.tokenizer.pad_token_id)
+
+        pred_str = processor.tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
+        label_str = processor.tokenizer.batch_decode(label_ids, skip_special_tokens=True)
+
+        wer = wer_metric.compute(predictions=pred_str, references=label_str)
+        cer = cer_metric.compute(predictions=pred_str, references=label_str)
+
+        return {"wer": wer, "cer": cer}
 
     # Check if a checkpoint exists for resumption
     last_checkpoint = None
@@ -160,6 +191,7 @@ def train():
         eval_dataset=val_dataset,
         data_collator=data_collator,
         tokenizer=processor.feature_extractor,
+        compute_metrics=compute_metrics,  # Issue #9: WER/CER hook
     )
 
     print("Starting training...")
