@@ -9,7 +9,7 @@
 [![GitHub Stars](https://img.shields.io/github/stars/purvanshjoshi/IndiVoice-DeepASR?style=for-the-badge&logo=github&color=FFD700)](https://github.com/purvanshjoshi/IndiVoice-DeepASR/stargazers)
 [![Hugging Face](https://img.shields.io/badge/Datasets-Svarah-blue?style=for-the-badge)](https://huggingface.co/datasets/ai4bharat/Svarah)
 [![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/)
-[![License](https://img.shields.io/badge/License-MIT-4CAF50?style=for-the-badge)](LICENSE)
+[![License](https://img.shields.io/badge/License-Apache_2.0-4CAF50?style=for-the-badge)](LICENSE)
 
 [**Explore the Code**](https://github.com/PxA-Labs/IndiVoice-DeepASR) • [**Launch Colab**](https://colab.research.google.com/github/PxA-Labs/IndiVoice-DeepASR/blob/main/notebooks/IndiVoice_Colab_Entry.ipynb) • [**Launch Kaggle**](https://github.com/PxA-Labs/IndiVoice-DeepASR/tree/main/kaggle)
 
